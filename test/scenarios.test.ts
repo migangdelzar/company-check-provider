@@ -36,4 +36,26 @@ describe("deterministic scenario engine", () => {
     first.next("x");
     expect(createScenarioEngine(config("free")).next("x")).toEqual({ kind: "success" });
   });
+
+  test("uses the configured version-controlled default sequence", () => {
+    const configured = {
+      ...config("free"),
+      schedule: {
+        rules: [],
+        defaultSequence: "retry",
+        sequences: [
+          {
+            name: "retry",
+            actions: [
+              { action: "timeout", delayMs: 10 },
+              { action: "http-error", statusCode: 503, delayMs: 0 },
+            ],
+          },
+        ],
+      },
+    } as Configuration;
+    const engine = createScenarioEngine(configured);
+    expect(engine.next("ACME")).toEqual({ kind: "timeout", delayMs: 10 });
+    expect(engine.next("ACME")).toEqual({ kind: "http-error", status: 503 });
+  });
 });

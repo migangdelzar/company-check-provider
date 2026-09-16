@@ -16,9 +16,7 @@ export const PremiumCompanyContract = z.object({
   isActive: z.boolean(),
 }).strict();
 
-export const lookupContract = z.object({
-  companies: z.array(z.union([FreeCompanyContract, PremiumCompanyContract])),
-}).strict();
+export const lookupContract = z.array(z.union([FreeCompanyContract, PremiumCompanyContract]));
 
 export type FreeCompanyContract = z.infer<typeof FreeCompanyContract>;
 export type PremiumCompanyContract = z.infer<typeof PremiumCompanyContract>;

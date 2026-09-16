@@ -30,6 +30,7 @@ WORKDIR /app
 COPY --from=build --chown=bun:bun /app/package.json /app/bun.lock ./
 COPY --from=build --chown=bun:bun /app/node_modules ./node_modules
 COPY --from=build --chown=bun:bun /app/dist ./dist
+COPY --from=build --chown=bun:bun /app/src/config/scenarios ./config/scenarios
 
 USER bun
 EXPOSE 8081

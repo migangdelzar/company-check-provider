@@ -29,6 +29,23 @@ function action(rule: Configuration["schedule"]["rules"][number]): ScenarioActio
   }
 }
 
+function sequenceAction(spec: Configuration["schedule"]["sequences"][number]["actions"][number]): ScenarioAction {
+  switch (spec.action) {
+    case "respond":
+    case "success":
+      return Object.freeze({ kind: "success" });
+    case "error":
+    case "http-error":
+      return Object.freeze({ kind: "http-error", status: spec.statusCode ?? 500 });
+    case "malformed":
+      return Object.freeze({ kind: "malformed" });
+    case "network-failure":
+      return Object.freeze({ kind: "network-failure" });
+    case "timeout":
+      return Object.freeze({ kind: "timeout", delayMs: spec.delayMs });
+  }
+}
+
 export interface ScenarioEngine { next(query: string): ScenarioAction; }
 
 export function createScenarioEngine(configuration: Configuration): ScenarioEngine {
@@ -36,7 +53,12 @@ export function createScenarioEngine(configuration: Configuration): ScenarioEngi
     .slice().sort((a, b) => a.order - b.order)
     .map((rule) => Object.freeze({ order: rule.order, query: normalize(rule.query), action: action(rule) })));
   const counters = new Map<string, number>();
-  const cycle = DEFAULT_CYCLES[configuration.tier];
+  const configuredSequence = configuration.schedule.sequences.find(
+    (sequence) => sequence.name === configuration.schedule.defaultSequence,
+  );
+  const cycle = configuredSequence
+    ? Object.freeze({ actions: Object.freeze(configuredSequence.actions.map(sequenceAction)) })
+    : DEFAULT_CYCLES[configuration.tier];
   return Object.freeze({
     next(query: string): ScenarioAction {
       const normalizedQuery = normalize(query);

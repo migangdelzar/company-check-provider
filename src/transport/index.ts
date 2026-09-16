@@ -6,8 +6,8 @@ import type { ScenarioAction, ScenarioEngine } from "../scenarios/index.js";
 
 const querySchema = {
   type: "object",
-  required: ["cin"],
-  properties: { cin: { type: "string", minLength: 1 } },
+  required: ["query"],
+  properties: { query: { type: "string", minLength: 1 } },
   additionalProperties: false,
 } as const;
 
@@ -24,8 +24,7 @@ const premiumCompanySchema = {
 } as const;
 
 const lookupResponseSchema = (tier: Configuration["tier"]) => ({
-  type: "object", required: ["companies"], additionalProperties: false,
-  properties: { companies: { type: "array", items: tier === "free" ? freeCompanySchema : premiumCompanySchema } },
+  type: "array", items: tier === "free" ? freeCompanySchema : premiumCompanySchema,
 });
 
 function responseFor(tier: Configuration["tier"], company: Company) {
@@ -35,7 +34,7 @@ function responseFor(tier: Configuration["tier"], company: Company) {
 }
 
 const wait = (delayMs: number) => new Promise<void>((resolve) => setTimeout(resolve, delayMs));
-type LookupRoute = { Querystring: { cin: string } };
+type LookupRoute = { Querystring: { query: string } };
 
 async function applyScenario(reply: FastifyReply, scenario: ScenarioAction) {
   if (scenario.kind === "timeout") await wait(scenario.delayMs);
@@ -61,14 +60,14 @@ export function createProviderApp(
 ): FastifyInstance {
   const app = Fastify({ logger: true });
   const lookup = async (request: FastifyRequest<LookupRoute>, reply: FastifyReply) => {
-    const query = request.query.cin;
+    const query = request.query.query;
     if (await applyScenario(reply, scenarios.next(query))) return;
-    reply.send({ companies: companyIndex.findByCinFragment(query).map((company) => responseFor(configuration.tier, company)) });
+    reply.send(companyIndex.findByCinFragment(query).map((company) => responseFor(configuration.tier, company)));
   };
 
   const lookupOptions = { schema: { querystring: querySchema, response: { 200: lookupResponseSchema(configuration.tier) } } };
-  app.get<LookupRoute>("/lookup", lookupOptions, lookup);
-  app.get<LookupRoute>("/company-check", lookupOptions, lookup);
+  const endpoint = configuration.tier === "free" ? "/free-third-party" : "/premium-third-party";
+  app.get<LookupRoute>(endpoint, lookupOptions, lookup);
   app.get("/health/live", async () => ({ status: "ok" }));
   app.get("/health/ready", async () => ({ status: "ok", tier: configuration.tier, companies: companyIndex.companies.length }));
   app.get("/health", async () => ({ status: "ok", tier: configuration.tier }));

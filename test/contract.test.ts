@@ -13,7 +13,8 @@ const configuration = (tier: "free" | "premium", fixtures: unknown[]) => ({
 async function response(tier: "free" | "premium") {
   const config = configuration(tier, tier === "free" ? freeFixtures : premiumFixtures);
   const app = createProviderApp(config, createCompanyIndex(config), createScenarioEngine(config));
-  try { return await app.inject({ method: "GET", url: "/lookup?cin=" + (tier === "free" ? "CJQUNXGW" : "F8OY0O0W") }); }
+  const endpoint = tier === "free" ? "/free-third-party" : "/premium-third-party";
+  try { return await app.inject({ method: "GET", url: endpoint + "?query=" + (tier === "free" ? "CJQUNXGW" : "F8OY0O0W") }); }
   finally { await app.close(); }
 }
 
@@ -22,16 +23,16 @@ describe("provider HTTP contract", () => {
     const result = await response("free");
     expect(result.statusCode).toBe(200);
     const payload = lookupContract.parse(result.json());
-    expect(payload.companies).toHaveLength(1);
-    expect(FreeCompanyContract.parse(payload.companies[0])).toBeTruthy();
+    expect(payload).toHaveLength(1);
+    expect(FreeCompanyContract.parse(payload[0])).toBeTruthy();
   });
 
   test("PREMIUM response has the documented camelCase schema", async () => {
     const result = await response("premium");
     expect(result.statusCode).toBe(200);
     const payload = lookupContract.parse(result.json());
-    expect(payload.companies).toHaveLength(1);
-    const company = PremiumCompanyContract.parse(payload.companies[0]);
+    expect(payload).toHaveLength(1);
+    const company = PremiumCompanyContract.parse(payload[0]);
     expect(company.fullAddress).toBe(premiumFixtures[0].fullAddress);
     expect(company).not.toHaveProperty("address");
   });
