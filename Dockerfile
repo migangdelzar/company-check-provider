@@ -8,6 +8,7 @@ COPY package.json bun.lock ./
 RUN bun install --frozen-lockfile
 
 COPY tsconfig.json ./
+COPY tsconfig.production.json ./
 COPY src ./src
 RUN bun run build
 

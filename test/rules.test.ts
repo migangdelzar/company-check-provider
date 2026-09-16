@@ -16,3 +16,18 @@ test('provider quality rules expose deterministic formatting and strict TypeScri
   expect(eslintConfig).toContain('explicit-function-return-type');
   expect(eslintConfig).toContain('no-explicit-any');
 });
+
+test('production build emits the Docker entrypoint and excludes tests', async () => {
+  const productionTsconfig = await readFile(
+    new URL('../tsconfig.production.json', import.meta.url),
+    'utf8'
+  );
+  const dockerfile = await readFile(new URL('../Dockerfile', import.meta.url), 'utf8');
+
+  expect(JSON.parse(productionTsconfig)).toMatchObject({
+    compilerOptions: { rootDir: 'src', outDir: 'dist' },
+    include: ['src'],
+  });
+  expect(dockerfile).toContain('ENTRYPOINT ["bun", "dist/index.js"]');
+  expect(dockerfile).toContain('COPY tsconfig.production.json ./');
+});

@@ -7,7 +7,7 @@
     "test": "bun test --frozen-lockfile test/*.test.ts",
     "test:contract": "bun test --frozen-lockfile test/contract.test.ts",
     "typecheck": "tsc --noEmit",
-    "build": "tsc",
+    "build": "tsc -p tsconfig.production.json",
     "start": "bun run src/index.ts",
     "lint": "eslint .",
     "format": "prettier --write .",
