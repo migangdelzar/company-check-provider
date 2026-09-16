@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "bun test --frozen-lockfile",
+    "test": "bun test --frozen-lockfile test/*.test.ts",
     "test:contract": "bun test --frozen-lockfile test/contract.test.ts",
     "typecheck": "tsc --noEmit",
     "build": "tsc",

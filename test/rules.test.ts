@@ -12,6 +12,7 @@ test('provider quality rules expose deterministic formatting and strict TypeScri
 
   expect(packageJson.scripts?.format).toBe('prettier --write .');
   expect(packageJson.scripts?.['format:check']).toBe('prettier --check .');
+  expect(packageJson.scripts?.test).toBe('bun test --frozen-lockfile test/*.test.ts');
   expect(eslintConfig).toContain('explicit-function-return-type');
   expect(eslintConfig).toContain('no-explicit-any');
 });
