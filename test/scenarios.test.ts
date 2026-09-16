@@ -1,7 +1,8 @@
 import { describe, expect, test } from "bun:test";
+import type { Configuration } from "../src/config/schema.js";
 import { createScenarioEngine } from "../src/scenarios/index.js";
 
-const config = (tier: "free" | "premium", rules = []) => ({ tier, fixtures: [{ cin: "A", name: "A", registration_date: "2024-01-01", address: "A", is_active: true }], schedule: { rules, sequences: [] } }) as never;
+const config = (tier: Configuration["tier"], rules: Configuration["schedule"]["rules"] = []): Configuration => ({ tier, fixtures: [{ cin: "A", name: "A", registration_date: "2024-01-01", address: "A", is_active: true }], schedule: { rules, sequences: [] } });
 
 describe("deterministic scenario engine", () => {
   test("uses the first matching rule in order and normalizes queries", () => {

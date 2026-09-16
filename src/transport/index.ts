@@ -1,4 +1,4 @@
-import Fastify, { type FastifyInstance, type FastifyReply } from "fastify";
+import Fastify, { type FastifyInstance, type FastifyReply, type FastifyRequest } from "fastify";
 import type { Configuration } from "../config/schema.js";
 import type { Company } from "../domain/company.js";
 import type { CompanyIndex } from "../lookup/index.js";
@@ -35,6 +35,7 @@ function responseFor(tier: Configuration["tier"], company: Company) {
 }
 
 const wait = (delayMs: number) => new Promise<void>((resolve) => setTimeout(resolve, delayMs));
+type LookupRoute = { Querystring: { cin: string } };
 
 async function applyScenario(reply: FastifyReply, scenario: ScenarioAction) {
   if (scenario.kind === "timeout") await wait(scenario.delayMs);
@@ -59,15 +60,15 @@ export function createProviderApp(
   scenarios: ScenarioEngine,
 ): FastifyInstance {
   const app = Fastify({ logger: true });
-  const lookup = async (request: { Querystring: { cin: string } }, reply: FastifyReply) => {
-    const query = request.Querystring.cin;
+  const lookup = async (request: FastifyRequest<LookupRoute>, reply: FastifyReply) => {
+    const query = request.query.cin;
     if (await applyScenario(reply, scenarios.next(query))) return;
     reply.send({ companies: companyIndex.findByCinFragment(query).map((company) => responseFor(configuration.tier, company)) });
   };
 
   const lookupOptions = { schema: { querystring: querySchema, response: { 200: lookupResponseSchema(configuration.tier) } } };
-  app.get("/lookup", lookupOptions, lookup);
-  app.get("/company-check", lookupOptions, lookup);
+  app.get<LookupRoute>("/lookup", lookupOptions, lookup);
+  app.get<LookupRoute>("/company-check", lookupOptions, lookup);
   app.get("/health/live", async () => ({ status: "ok" }));
   app.get("/health/ready", async () => ({ status: "ok", tier: configuration.tier, companies: companyIndex.companies.length }));
   app.get("/health", async () => ({ status: "ok", tier: configuration.tier }));

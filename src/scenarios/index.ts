@@ -10,9 +10,12 @@ export type ScenarioAction =
 type Rule = Readonly<{ order: number; query: string; action: ScenarioAction }>;
 type Cycle = Readonly<{ actions: readonly ScenarioAction[] }>;
 
+const success = (): ScenarioAction => Object.freeze({ kind: "success" });
+const httpError = (status: number): ScenarioAction => Object.freeze({ kind: "http-error", status });
+
 const DEFAULT_CYCLES: Record<Configuration["tier"], Cycle> = {
-  free: Object.freeze({ actions: Object.freeze([{ kind: "success" }, { kind: "success" }, { kind: "success" }, { kind: "http-error", status: 503 }, { kind: "http-error", status: 503 }]) }),
-  premium: Object.freeze({ actions: Object.freeze(Array.from({ length: 10 }, (_, i) => i === 9 ? { kind: "http-error", status: 503 } : { kind: "success" })) }),
+  free: Object.freeze({ actions: Object.freeze([success(), success(), success(), httpError(503), httpError(503)]) }),
+  premium: Object.freeze({ actions: Object.freeze(Array.from({ length: 10 }, (_, i) => i === 9 ? httpError(503) : success())) }),
 };
 
 function normalize(value: string): string { return value.trim().toLocaleLowerCase(); }
