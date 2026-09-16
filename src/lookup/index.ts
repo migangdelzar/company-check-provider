@@ -1,5 +1,5 @@
-import type { Company } from "../domain/company.js";
-import type { Configuration } from "../config/schema.js";
+import type { Company } from '../domain/company.js';
+import type { Configuration } from '../config/schema.js';
 
 type FreeFixture = {
   cin: string;
@@ -41,11 +41,13 @@ export function mapPremiumCompany(fixture: PremiumFixture): Company {
   });
 }
 
-export function createCompanyIndex(configuration: Configuration): CompanyIndex & { readonly companies: readonly Company[] } {
+export function createCompanyIndex(
+  configuration: Configuration
+): CompanyIndex & { readonly companies: readonly Company[] } {
   const companies = Object.freeze(
-    configuration.tier === "free"
+    configuration.tier === 'free'
       ? configuration.fixtures.map((fixture) => mapFreeCompany(fixture as FreeFixture))
-      : configuration.fixtures.map((fixture) => mapPremiumCompany(fixture as PremiumFixture)),
+      : configuration.fixtures.map((fixture) => mapPremiumCompany(fixture as PremiumFixture))
   );
   const normalized = companies.map((company) => company.cin.toLocaleLowerCase());
 
