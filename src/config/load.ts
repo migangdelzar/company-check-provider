@@ -1,16 +1,12 @@
 import { readFileSync } from 'node:fs';
 import freeFixtures from './fixtures/free.json' with { type: 'json' };
 import premiumFixtures from './fixtures/premium.json' with { type: 'json' };
+import freeSchedule from './scenarios/free.json' with { type: 'json' };
+import premiumSchedule from './scenarios/premium.json' with { type: 'json' };
 import { validateConfiguration, type Configuration } from './schema.js';
 
-const defaultSchedule = {
-  rules: [],
-  defaultSequence: 'default',
-  sequences: [{ name: 'default', actions: [{ action: 'respond', delayMs: 0 }] }],
-};
-
-function loadSchedule(path: string | undefined): unknown {
-  if (!path) return defaultSchedule;
+function loadSchedule(path: string | undefined, tier: 'free' | 'premium'): unknown {
+  if (!path) return tier === 'free' ? freeSchedule : premiumSchedule;
   try {
     return JSON.parse(readFileSync(path, 'utf8'));
   } catch (error) {
@@ -29,6 +25,6 @@ export function loadConfiguration(
   return validateConfiguration({
     tier,
     fixtures: tier === 'free' ? freeFixtures : premiumFixtures,
-    schedule: loadSchedule(env.PROVIDER_SCENARIO_FILE),
+    schedule: loadSchedule(env.PROVIDER_SCENARIO_FILE, tier),
   });
 }

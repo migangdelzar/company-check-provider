@@ -37,13 +37,13 @@ describe('company index', () => {
     expect(premium.companies[0].cin).toBe(premiumFixtures[0].companyIdentificationNumber);
   });
 
-  test('finds CIN fragments case-insensitively in fixture order', () => {
+  test('finds an exact CIN case-insensitively', () => {
     const index = createCompanyIndex({ tier: 'free', fixtures: freeFixtures, schedule });
-    expect(index.findByCinFragment('cJq').map((company) => company.cin)).toEqual(['CJQUNXGW']);
+    expect(index.findByCin('cJqUnXgW')?.cin).toBe('CJQUNXGW');
   });
 
-  test('returns an empty result when no CIN contains the fragment', () => {
+  test('does not match a CIN fragment', () => {
     const index = createCompanyIndex({ tier: 'premium', fixtures: premiumFixtures, schedule });
-    expect(index.findByCinFragment('missing')).toEqual([]);
+    expect(index.findByCin('F8OY')).toBeUndefined();
   });
 });

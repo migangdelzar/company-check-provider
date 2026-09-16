@@ -121,11 +121,8 @@ export function createProviderApp(
   ): Promise<void> => {
     const query = request.query.query;
     if (await applyScenario(reply, scenarios.next(query))) return;
-    reply.send(
-      companyIndex
-        .findByCinFragment(query)
-        .map((company) => responseFor(configuration.tier, company))
-    );
+    const company = companyIndex.findByCin(query);
+    reply.send(company ? [responseFor(configuration.tier, company)] : []);
   };
 
   const lookupOptions = {

@@ -52,6 +52,28 @@ describe('provider configuration', () => {
         })
       )
     ).toThrow('statusCode'));
+  test('rejects non-error status codes for failure actions', () =>
+    expect(() =>
+      validateConfiguration(
+        config({
+          rules: [{ order: 0, query: 'x', action: 'http-error', statusCode: 204 }],
+          sequences: [],
+        })
+      )
+    ).toThrow('statusCode'));
+  test('accepts supported client and server failure statuses', () => {
+    expect(() =>
+      validateConfiguration(
+        config({
+          rules: [
+            { order: 0, query: 'client', action: 'http-error', statusCode: 429 },
+            { order: 1, query: 'server', action: 'http-error', statusCode: 503 },
+          ],
+          sequences: [],
+        })
+      )
+    ).not.toThrow();
+  });
   test('rejects invalid action', () =>
     expect(() =>
       validateConfiguration(
@@ -74,4 +96,20 @@ describe('provider configuration', () => {
     expect(() =>
       validateConfiguration(config({ rules: [], sequences: [{ name: 'bad', actions: [] }] }))
     ).toThrow('actions'));
+  test('rejects an unknown default sequence', () =>
+    expect(() =>
+      validateConfiguration(
+        config({
+          defaultSequence: 'missing',
+          rules: [],
+          sequences: [{ name: 'retry', actions: [{ action: 'http-error', statusCode: 503 }] }],
+        })
+      )
+    ).toThrow('defaultSequence'));
+  test('rejects whitespace-only scenario queries', () =>
+    expect(() =>
+      validateConfiguration(
+        config({ rules: [{ order: 0, query: '   ', action: 'malformed' }], sequences: [] })
+      )
+    ).toThrow('query'));
 });

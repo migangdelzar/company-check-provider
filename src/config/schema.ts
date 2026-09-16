@@ -1,6 +1,6 @@
 import { z } from 'zod';
 export const TierSchema = z.enum(['free', 'premium']);
-export const StatusCodeSchema = z.number().int().min(100).max(599);
+export const StatusCodeSchema = z.number().int().min(400).max(599);
 export const DelaySchema = z.number().int().min(0).max(60000);
 export const ActionSchema = z.enum([
   'respond',
@@ -33,7 +33,7 @@ export const FixtureRecordSchema = z.union([FreeFixtureSchema, PremiumFixtureSch
 export const MatchRuleSchema = z
   .object({
     order: z.number().int().nonnegative(),
-    query: z.string().min(1),
+    query: z.string().trim().min(1),
     action: ActionSchema,
     statusCode: StatusCodeSchema.optional(),
     delayMs: DelaySchema.default(0),
@@ -88,9 +88,21 @@ export const ScheduleSchema = z
       });
     }),
     sequences: z.array(ActionSequenceSchema),
-    defaultSequence: z.string().min(1).optional(),
+    defaultSequence: z.string().trim().min(1).optional(),
   })
-  .strict();
+  .strict()
+  .superRefine((schedule, context) => {
+    if (
+      schedule.defaultSequence !== undefined &&
+      !schedule.sequences.some((sequence) => sequence.name === schedule.defaultSequence)
+    ) {
+      context.addIssue({
+        code: 'custom',
+        path: ['defaultSequence'],
+        message: 'must reference a configured sequence',
+      });
+    }
+  });
 const FreeConfigurationSchema = z
   .object({
     tier: z.literal('free'),

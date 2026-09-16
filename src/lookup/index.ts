@@ -18,7 +18,7 @@ type PremiumFixture = {
 };
 
 export interface CompanyIndex {
-  findByCinFragment(fragment: string): readonly Company[];
+  findByCin(cin: string): Company | undefined;
 }
 
 export function mapFreeCompany(fixture: FreeFixture): Company {
@@ -49,13 +49,12 @@ export function createCompanyIndex(
       ? configuration.fixtures.map((fixture) => mapFreeCompany(fixture as FreeFixture))
       : configuration.fixtures.map((fixture) => mapPremiumCompany(fixture as PremiumFixture))
   );
-  const normalized = companies.map((company) => company.cin.toLocaleLowerCase());
+  const byCin = new Map(companies.map((company) => [company.cin.toUpperCase(), company]));
 
   return Object.freeze({
     companies,
-    findByCinFragment(fragment: string): readonly Company[] {
-      const normalizedFragment = fragment.toLocaleLowerCase();
-      return companies.filter((_, index) => normalized[index].includes(normalizedFragment));
+    findByCin(cin: string): Company | undefined {
+      return byCin.get(cin.trim().toUpperCase());
     },
   });
 }

@@ -11,21 +11,8 @@ type Rule = Readonly<{ order: number; query: string; action: ScenarioAction }>;
 type Cycle = Readonly<{ actions: readonly ScenarioAction[] }>;
 
 const success = (): ScenarioAction => Object.freeze({ kind: 'success' });
-const httpError = (status: number): ScenarioAction => Object.freeze({ kind: 'http-error', status });
-
-const DEFAULT_CYCLES: Record<Configuration['tier'], Cycle> = {
-  free: Object.freeze({
-    actions: Object.freeze([success(), success(), success(), httpError(503), httpError(503)]),
-  }),
-  premium: Object.freeze({
-    actions: Object.freeze(
-      Array.from({ length: 10 }, (_, i) => (i === 9 ? httpError(503) : success()))
-    ),
-  }),
-};
-
 function normalize(value: string): string {
-  return value.trim().toLocaleLowerCase();
+  return value.trim().toLowerCase();
 }
 function action(rule: Configuration['schedule']['rules'][number]): ScenarioAction {
   switch (rule.action) {
@@ -80,9 +67,9 @@ export function createScenarioEngine(configuration: Configuration): ScenarioEngi
   const configuredSequence = configuration.schedule.sequences.find(
     (sequence) => sequence.name === configuration.schedule.defaultSequence
   );
-  const cycle = configuredSequence
-    ? Object.freeze({ actions: Object.freeze(configuredSequence.actions.map(sequenceAction)) })
-    : DEFAULT_CYCLES[configuration.tier];
+  const cycle: Cycle = Object.freeze({
+    actions: Object.freeze(configuredSequence?.actions.map(sequenceAction) ?? [success()]),
+  });
   return Object.freeze({
     next(query: string): ScenarioAction {
       const normalizedQuery = normalize(query);

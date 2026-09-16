@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'bun:test';
 import type { Configuration } from '../src/config/schema.js';
+import { loadConfiguration } from '../src/config/load.js';
 import { createScenarioEngine } from '../src/scenarios/index.js';
 
 const config = (
@@ -25,11 +26,11 @@ describe('deterministic scenario engine', () => {
   });
 
   test('cycles default FREE and PREMIUM schedules', () => {
-    const free = createScenarioEngine(config('free'));
+    const free = createScenarioEngine(loadConfiguration({ PROVIDER_TIER: 'free' }));
     expect(
       Array.from({ length: 5 }, () => free.next('x')).filter((a) => a.kind === 'http-error')
     ).toHaveLength(2);
-    const premium = createScenarioEngine(config('premium'));
+    const premium = createScenarioEngine(loadConfiguration({ PROVIDER_TIER: 'premium' }));
     expect(
       Array.from({ length: 10 }, () => premium.next('x')).filter((a) => a.kind === 'http-error')
     ).toHaveLength(1);
@@ -74,5 +75,33 @@ describe('deterministic scenario engine', () => {
     const engine = createScenarioEngine(configured);
     expect(engine.next('ACME')).toEqual({ kind: 'timeout', delayMs: 10 });
     expect(engine.next('ACME')).toEqual({ kind: 'http-error', status: 503 });
+  });
+
+  test('cycles a configured retry sequence deterministically across failures', () => {
+    const configured = {
+      ...config('free'),
+      schedule: {
+        rules: [],
+        defaultSequence: 'retry',
+        sequences: [
+          {
+            name: 'retry',
+            actions: [
+              { action: 'timeout', delayMs: 1 },
+              { action: 'network-failure', delayMs: 0 },
+              { action: 'malformed', delayMs: 0 },
+              { action: 'http-error', statusCode: 503, delayMs: 0 },
+            ],
+          },
+        ],
+      },
+    } as Configuration;
+    const engine = createScenarioEngine(configured);
+    expect(Array.from({ length: 4 }, () => engine.next('CIN'))).toEqual([
+      { kind: 'timeout', delayMs: 1 },
+      { kind: 'network-failure' },
+      { kind: 'malformed' },
+      { kind: 'http-error', status: 503 },
+    ]);
   });
 });
