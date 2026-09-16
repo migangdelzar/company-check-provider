@@ -1,0 +1,9 @@
+[tools]
+bun = "latest"
+
+[tasks]
+test = "bun test --frozen-lockfile"
+typecheck = "bun run typecheck"
+build = "bun run build"
+start = "bun run start"
+lint = "bun run lint"
