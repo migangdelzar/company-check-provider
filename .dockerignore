@@ -1,0 +1,12 @@
+.git
+.gitignore
+.dockerignore
+Dockerfile
+container-smoke.sh
+node_modules
+dist
+coverage
+.env
+.env.*
+test
+*.log
