@@ -35,6 +35,20 @@ async function response(
 }
 
 describe('provider HTTP contract', () => {
+  test('exposes live, ready, and aggregate health routes', async () => {
+    const config = configuration('free', freeFixtures);
+    const app = createProviderApp(config, createCompanyIndex(config), createScenarioEngine(config));
+    try {
+      for (const endpoint of ['/health', '/health/live', '/health/ready']) {
+        const result = await app.inject({ method: 'GET', url: endpoint });
+        expect(result.statusCode).toBe(200);
+        expect(result.json()).toMatchObject({ status: 'ok' });
+      }
+    } finally {
+      await app.close();
+    }
+  });
+
   test('FREE response has the documented snake_case schema', async () => {
     const result = await response('free');
     expect(result.statusCode).toBe(200);
