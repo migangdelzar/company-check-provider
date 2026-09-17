@@ -2,6 +2,8 @@ import { z } from 'zod';
 export const TierSchema = z.enum(['free', 'premium']);
 export const StatusCodeSchema = z.number().int().min(400).max(599);
 export const DelaySchema = z.number().int().min(0).max(60000);
+export const SeedSchema = z.number().int().nonnegative().max(4294967295);
+export const FailureRateSchema = z.number().min(0).max(1);
 export const ActionSchema = z.enum([
   'respond',
   'error',
@@ -25,7 +27,7 @@ const PremiumFixtureSchema = z
     companyIdentificationNumber: z.string().min(1),
     companyName: z.string().min(1),
     registrationDate: z.string().date(),
-    fullAddress: z.string().min(1),
+    companyFullAddress: z.string().min(1),
     isActive: z.boolean(),
   })
   .strict();
@@ -89,6 +91,8 @@ export const ScheduleSchema = z
     }),
     sequences: z.array(ActionSequenceSchema),
     defaultSequence: z.string().trim().min(1).optional(),
+    seed: SeedSchema.optional(),
+    failureRate: FailureRateSchema.optional(),
   })
   .strict()
   .superRefine((schedule, context) => {

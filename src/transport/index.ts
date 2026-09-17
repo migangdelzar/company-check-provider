@@ -30,14 +30,14 @@ const premiumCompanySchema = {
     'companyIdentificationNumber',
     'companyName',
     'registrationDate',
-    'fullAddress',
+    'companyFullAddress',
     'isActive',
   ],
   properties: {
     companyIdentificationNumber: { type: 'string' },
     companyName: { type: 'string' },
     registrationDate: { type: 'string', format: 'date' },
-    fullAddress: { type: 'string' },
+    companyFullAddress: { type: 'string' },
     isActive: { type: 'boolean' },
   },
   additionalProperties: false,
@@ -68,7 +68,7 @@ function responseFor(
       companyIdentificationNumber: string;
       companyName: string;
       registrationDate: string;
-      fullAddress: string;
+      companyFullAddress: string;
       isActive: boolean;
     } {
   return tier === 'free'
@@ -83,7 +83,7 @@ function responseFor(
         companyIdentificationNumber: company.cin,
         companyName: company.name,
         registrationDate: company.registrationDate,
-        fullAddress: company.address,
+        companyFullAddress: company.address,
         isActive: company.isActive,
       };
 }

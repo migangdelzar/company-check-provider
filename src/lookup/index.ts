@@ -13,7 +13,7 @@ type PremiumFixture = {
   companyIdentificationNumber: string;
   companyName: string;
   registrationDate: string;
-  fullAddress: string;
+  companyFullAddress: string;
   isActive: boolean;
 };
 
@@ -36,7 +36,7 @@ export function mapPremiumCompany(fixture: PremiumFixture): Company {
     cin: fixture.companyIdentificationNumber,
     name: fixture.companyName,
     registrationDate: fixture.registrationDate,
-    address: fixture.fullAddress,
+    address: fixture.companyFullAddress,
     isActive: fixture.isActive,
   });
 }

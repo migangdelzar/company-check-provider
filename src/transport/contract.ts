@@ -15,7 +15,7 @@ export const PremiumCompanyContract = z
     companyIdentificationNumber: z.string(),
     companyName: z.string(),
     registrationDate: z.string().date(),
-    fullAddress: z.string(),
+    companyFullAddress: z.string(),
     isActive: z.boolean(),
   })
   .strict();

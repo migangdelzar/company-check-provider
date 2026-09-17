@@ -1,21 +1,12 @@
 {
   "rules": [],
+  "seed": 2026091702,
+  "failureRate": 0.1,
   "defaultSequence": "default",
   "sequences": [
     {
       "name": "default",
-      "actions": [
-        { "action": "respond", "delayMs": 0 },
-        { "action": "respond", "delayMs": 0 },
-        { "action": "respond", "delayMs": 0 },
-        { "action": "respond", "delayMs": 0 },
-        { "action": "respond", "delayMs": 0 },
-        { "action": "respond", "delayMs": 0 },
-        { "action": "respond", "delayMs": 0 },
-        { "action": "respond", "delayMs": 0 },
-        { "action": "respond", "delayMs": 0 },
-        { "action": "http-error", "statusCode": 503, "delayMs": 0 }
-      ]
+      "actions": [{ "action": "respond", "delayMs": 0 }]
     }
   ]
 }

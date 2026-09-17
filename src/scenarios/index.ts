@@ -11,6 +11,15 @@ type Rule = Readonly<{ order: number; query: string; action: ScenarioAction }>;
 type Cycle = Readonly<{ actions: readonly ScenarioAction[] }>;
 
 const success = (): ScenarioAction => Object.freeze({ kind: 'success' });
+
+function createRandom(seed: number): () => number {
+  let state = seed >>> 0;
+  return () => {
+    state = (Math.imul(state, 1664525) + 1013904223) >>> 0;
+    return state / 0x100000000;
+  };
+}
+
 function normalize(value: string): string {
   return value.trim().toLowerCase();
 }
@@ -70,6 +79,8 @@ export function createScenarioEngine(configuration: Configuration): ScenarioEngi
   const cycle: Cycle = Object.freeze({
     actions: Object.freeze(configuredSequence?.actions.map(sequenceAction) ?? [success()]),
   });
+  const random = createRandom(configuration.schedule.seed ?? 0);
+  const failureRate = configuration.schedule.failureRate ?? 0;
   return Object.freeze({
     next(query: string): ScenarioAction {
       const normalizedQuery = normalize(query);
@@ -78,6 +89,9 @@ export function createScenarioEngine(configuration: Configuration): ScenarioEngi
         const key = `${configuration.tier}\u0000${normalizedQuery}\u0000rule:${rule.order}`;
         counters.set(key, (counters.get(key) ?? 0) + 1);
         return rule.action;
+      }
+      if (failureRate > 0 && random() < failureRate) {
+        return Object.freeze({ kind: 'http-error', status: 503 });
       }
       const key = `${configuration.tier}\u0000${normalizedQuery}\u0000default`;
       const index = counters.get(key) ?? 0;

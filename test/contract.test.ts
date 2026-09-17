@@ -63,7 +63,7 @@ describe('provider HTTP contract', () => {
     const payload = lookupContract.parse(result.json());
     expect(payload).toHaveLength(1);
     const company = PremiumCompanyContract.parse(payload[0]);
-    expect(company.fullAddress).toBe(premiumFixtures[0].fullAddress);
+    expect(company.companyFullAddress).toBe(premiumFixtures[0].companyFullAddress);
     expect(company).not.toHaveProperty('address');
   });
 

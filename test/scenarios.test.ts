@@ -25,15 +25,42 @@ describe('deterministic scenario engine', () => {
     expect(engine.next(' ACME ltd ')).toEqual({ kind: 'http-error', status: 503 });
   });
 
-  test('cycles default FREE and PREMIUM schedules', () => {
+  test('applies configured FREE and PREMIUM failure rates', () => {
     const free = createScenarioEngine(loadConfiguration({ PROVIDER_TIER: 'free' }));
-    expect(
-      Array.from({ length: 5 }, () => free.next('x')).filter((a) => a.kind === 'http-error')
-    ).toHaveLength(2);
+    const freeFailures = Array.from({ length: 1000 }, (_, index) =>
+      free.next(`free-${index}`)
+    ).filter((action) => action.kind === 'http-error');
+    expect(freeFailures.length).toBeGreaterThanOrEqual(350);
+    expect(freeFailures.length).toBeLessThanOrEqual(450);
+
     const premium = createScenarioEngine(loadConfiguration({ PROVIDER_TIER: 'premium' }));
-    expect(
-      Array.from({ length: 10 }, () => premium.next('x')).filter((a) => a.kind === 'http-error')
-    ).toHaveLength(1);
+    const premiumFailures = Array.from({ length: 1000 }, (_, index) =>
+      premium.next(`premium-${index}`)
+    ).filter((action) => action.kind === 'http-error');
+    expect(premiumFailures.length).toBeGreaterThanOrEqual(50);
+    expect(premiumFailures.length).toBeLessThanOrEqual(150);
+  });
+
+  test('uses a seeded failure rate reproducibly across requests', () => {
+    const configured = {
+      ...config('free'),
+      schedule: {
+        rules: [],
+        sequences: [],
+        seed: 42,
+        failureRate: 0.4,
+      },
+    } as Configuration;
+    const first = createScenarioEngine(configured);
+    const second = createScenarioEngine(configured);
+
+    const firstActions = Array.from({ length: 1000 }, (_, index) => first.next(`query-${index}`));
+    const secondActions = Array.from({ length: 1000 }, (_, index) => second.next(`query-${index}`));
+    const failures = firstActions.filter((action) => action.kind === 'http-error');
+
+    expect(firstActions).toEqual(secondActions);
+    expect(failures.length).toBeGreaterThanOrEqual(350);
+    expect(failures.length).toBeLessThanOrEqual(450);
   });
 
   test('supports timeout, network failure, and malformed actions', () => {

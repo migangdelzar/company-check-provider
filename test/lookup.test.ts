@@ -16,7 +16,7 @@ describe('company fixture mapping', () => {
     });
   });
 
-  test('maps PREMIUM camelCase fields and fullAddress', () => {
+  test('maps PREMIUM camelCase fields and companyFullAddress', () => {
     expect(mapPremiumCompany(premiumFixtures[0])).toEqual({
       cin: 'F8OY0O0W',
       name: 'Young, Gomez and Thompson',
