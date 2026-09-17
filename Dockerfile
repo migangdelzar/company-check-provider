@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-FROM oven/bun:1.3.9-alpine AS build
+FROM oven/bun:1.4.2-alpine AS build
 
 WORKDIR /app
 
@@ -12,7 +12,7 @@ COPY tsconfig.production.json ./
 COPY src ./src
 RUN bun run build
 
-FROM oven/bun:1.3.9-alpine AS runtime
+FROM oven/bun:1.4.2-alpine AS runtime
 
 ARG VCS_REF=unknown
 ARG BUILD_DATE=unknown
