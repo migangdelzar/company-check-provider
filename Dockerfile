@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-FROM oven/bun:1.3.9-alpine AS build
+FROM oven/bun:1.4.2-alpine AS build
 
 WORKDIR /app
 
@@ -8,10 +8,11 @@ COPY package.json bun.lock ./
 RUN bun install --frozen-lockfile
 
 COPY tsconfig.json ./
+COPY tsconfig.production.json ./
 COPY src ./src
 RUN bun run build
 
-FROM oven/bun:1.3.9-alpine AS runtime
+FROM oven/bun:1.4.2-alpine AS runtime
 
 ARG VCS_REF=unknown
 ARG BUILD_DATE=unknown
@@ -30,6 +31,7 @@ WORKDIR /app
 COPY --from=build --chown=bun:bun /app/package.json /app/bun.lock ./
 COPY --from=build --chown=bun:bun /app/node_modules ./node_modules
 COPY --from=build --chown=bun:bun /app/dist ./dist
+COPY --from=build --chown=bun:bun /app/src/config/fixtures ./config/fixtures
 COPY --from=build --chown=bun:bun /app/src/config/scenarios ./config/scenarios
 
 USER bun

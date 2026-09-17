@@ -1,13 +1,2 @@
 [tools]
-bun = "1.3.9"
-
-[tasks]
-test = "bun test --frozen-lockfile"
-typecheck = "bun run typecheck"
-build = "bun run build"
-start = "bun run start"
-lint = "bun run lint"
-contract = "bun run test:contract"
-quality = "bun run quality"
-security = "bun run security"
-licenses = "bun run licenses"
+bun = "1.3"

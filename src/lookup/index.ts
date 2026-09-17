@@ -1,5 +1,5 @@
-import type { Company } from "../domain/company.js";
-import type { Configuration } from "../config/schema.js";
+import type { Company } from '../domain/company.js';
+import type { Configuration } from '../config/schema.js';
 
 type FreeFixture = {
   cin: string;
@@ -13,12 +13,12 @@ type PremiumFixture = {
   companyIdentificationNumber: string;
   companyName: string;
   registrationDate: string;
-  fullAddress: string;
+  companyFullAddress: string;
   isActive: boolean;
 };
 
 export interface CompanyIndex {
-  findByCinFragment(fragment: string): readonly Company[];
+  findByCin(cin: string): Company | undefined;
 }
 
 export function mapFreeCompany(fixture: FreeFixture): Company {
@@ -36,24 +36,25 @@ export function mapPremiumCompany(fixture: PremiumFixture): Company {
     cin: fixture.companyIdentificationNumber,
     name: fixture.companyName,
     registrationDate: fixture.registrationDate,
-    address: fixture.fullAddress,
+    address: fixture.companyFullAddress,
     isActive: fixture.isActive,
   });
 }
 
-export function createCompanyIndex(configuration: Configuration): CompanyIndex & { readonly companies: readonly Company[] } {
+export function createCompanyIndex(
+  configuration: Configuration
+): CompanyIndex & { readonly companies: readonly Company[] } {
   const companies = Object.freeze(
-    configuration.tier === "free"
+    configuration.tier === 'free'
       ? configuration.fixtures.map((fixture) => mapFreeCompany(fixture as FreeFixture))
-      : configuration.fixtures.map((fixture) => mapPremiumCompany(fixture as PremiumFixture)),
+      : configuration.fixtures.map((fixture) => mapPremiumCompany(fixture as PremiumFixture))
   );
-  const normalized = companies.map((company) => company.cin.toLocaleLowerCase());
+  const byCin = new Map(companies.map((company) => [company.cin.toUpperCase(), company]));
 
   return Object.freeze({
     companies,
-    findByCinFragment(fragment: string): readonly Company[] {
-      const normalizedFragment = fragment.toLocaleLowerCase();
-      return companies.filter((_, index) => normalized[index].includes(normalizedFragment));
+    findByCin(cin: string): Company | undefined {
+      return byCin.get(cin.trim().toUpperCase());
     },
   });
 }
